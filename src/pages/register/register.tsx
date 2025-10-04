@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { Navigate } from "react-router";
 import { Input } from "../../components/input";
 import { Form } from "../../components/form";
+import { useAuth } from "../../hooks/useAuth";
 
 export function Register() {
   const [name, setName] = useState("");
@@ -11,15 +13,21 @@ export function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // TODO: replace with actual user check
-  // const user = false;
-  // if (user) return <Navigate to="/" />;
+  const { user, register } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  if (user) return <Navigate to="/" />;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    //TODO: validate email and password
-    //TODO: implement register logic
+    if (email != confirmEmail) {
+      alert("Emails do not match");
+      return;
+    }
+    if (password != confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+    await register(name, email, password);
   };
 
   return (

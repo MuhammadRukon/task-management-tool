@@ -3,7 +3,7 @@ interface InputProps {
   type: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  placeholder: string;
+  placeholder?: string;
   showPassword?: boolean;
   onShowPassword?: () => void;
 }

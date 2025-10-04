@@ -18,10 +18,8 @@ export function Form({ handleSubmit, children, type }: FormProps) {
 
   return (
     <div className="rounded-lg shadow-lg border border-gray-300 p-8">
-      {/* Header */}
-      <div className="text-center mb-8">
-        <p className="text-2xl font-bold">{getText()}</p>
-      </div>
+      <Form.Header title={getText()} />
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {children}
 
@@ -41,9 +39,17 @@ export function Form({ handleSubmit, children, type }: FormProps) {
           className="font-medium"
         >
           {" "}
-          {getText()}
+          {type === "login" ? "Sign up" : "Sign in"}
         </Link>
       </p>
     </div>
   );
 }
+
+Form.Header = ({ title }: { title: string }) => {
+  return (
+    <div className="text-center mb-8">
+      <p className="text-2xl font-bold">{title}</p>
+    </div>
+  );
+};
