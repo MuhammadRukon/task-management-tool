@@ -63,7 +63,7 @@ export function Board() {
     setTasks(updatedTasks);
 
     const response = await fetch(
-      `http://localhost:3000/tasks/${draggedTaskId}`,
+      `${import.meta.env.VITE_API_URL}/tasks/${draggedTaskId}`,
       {
         method: "PATCH",
         headers: {
@@ -104,7 +104,7 @@ export function Board() {
     if (editingTask) {
       // Update existing task
       const response = await fetch(
-        `http://localhost:3000/tasks/${editingTask._id}`,
+        `${import.meta.env.VITE_API_URL}/tasks/${editingTask._id}`,
         {
           method: "PATCH",
           headers: {
@@ -127,7 +127,7 @@ export function Board() {
         assignedUser: taskData.assignedUser,
       };
 
-      const response = await fetch("http://localhost:3000/tasks", {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/tasks`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -148,7 +148,7 @@ export function Board() {
   // fetch tasks
   useEffect(() => {
     const fetchTasks = async () => {
-      const data = await fetch("http://localhost:3000/tasks");
+      const data = await fetch(`${import.meta.env.VITE_API_URL}/tasks`);
       const tasks = await data.json();
       setTasks(tasks);
     };
@@ -159,7 +159,7 @@ export function Board() {
   // fetch users
   useEffect(() => {
     const fetchUsers = async () => {
-      const data = await fetch("http://localhost:3000/users");
+      const data = await fetch(`${import.meta.env.VITE_API_URL}/users`);
       const users = await data.json();
       setUsers(users);
     };
