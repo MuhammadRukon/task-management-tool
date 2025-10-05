@@ -103,12 +103,21 @@ export function Board() {
   }) => {
     if (editingTask) {
       // Update existing task
-      const updatedTasks = tasks.map((task) =>
-        task._id === editingTask._id
-          ? { ...task, ...taskData, dueDate: new Date(taskData.dueDate) }
-          : task
+      const response = await fetch(
+        `http://localhost:3000/tasks/${editingTask._id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(taskData),
+        }
       );
-      setTasks(updatedTasks);
+
+      if (response.ok) {
+        setRefetchTasks((prev) => !prev);
+      }
     } else {
       const data: Partial<ITask> = {
         title: taskData.title,

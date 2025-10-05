@@ -19,8 +19,8 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
-  const [title, setTitle] = useState(initialData?.title || "");
   const { users } = useTask();
+  const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
@@ -34,7 +34,7 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
     onSubmit({ title, description, dueDate: new Date(dueDate), assignedUser });
   };
 
-  console.log(users, "users");
+  console.log(initialData, "initialData");
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
@@ -56,7 +56,7 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
       <Input
         label="Due Date"
         type="date"
-        value={dueDate as string}
+        value={dueDate.toString().split("T")[0]}
         onChange={(e) => setDueDate(e.target.value)}
         placeholder=""
       />
