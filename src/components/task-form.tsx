@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Input } from "./input";
 import { useTask } from "../hooks/useTask";
+import { useAuth } from "../hooks/useAuth";
 
 interface TaskFormProps {
   onSubmit: (task: {
@@ -11,15 +12,23 @@ interface TaskFormProps {
   }) => void;
   onCancel: () => void;
   initialData?: {
+    _id: string;
     title: string;
     description: string;
     dueDate: Date;
     assignedUser: string;
   };
+  onDelete: (_id: string) => void;
 }
 
-export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
+export function TaskForm({
+  onSubmit,
+  onCancel,
+  initialData,
+  onDelete,
+}: TaskFormProps) {
   const { users } = useTask();
+  const { user } = useAuth();
   const [title, setTitle] = useState(initialData?.title || "");
   const [description, setDescription] = useState(
     initialData?.description || ""
@@ -34,7 +43,6 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
     onSubmit({ title, description, dueDate: new Date(dueDate), assignedUser });
   };
 
-  console.log(initialData, "initialData");
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <Input
@@ -80,11 +88,24 @@ export function TaskForm({ onSubmit, onCancel, initialData }: TaskFormProps) {
 
       <div className="flex gap-2 pt-4">
         <button
+          disabled={
+            !title || !description || !dueDate || !assignedUser || !user
+          }
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+          className="disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
         >
           {initialData ? "Update Task" : "Add Task"}
         </button>
+        {initialData && (
+          <button
+            type="button"
+            disabled={!user}
+            onClick={() => onDelete(initialData?._id)}
+            className="disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+          >
+            Delete Task
+          </button>
+        )}
         <button
           type="button"
           onClick={onCancel}

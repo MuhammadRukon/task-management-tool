@@ -5,6 +5,7 @@ import { TaskForm } from "../../components/task-form";
 import { useEffect, useState } from "react";
 import { useTask } from "../../hooks/useTask";
 import type { ITask, IUser } from "../../interfaces";
+import { useAuth } from "../../hooks/useAuth";
 
 type Status = "pending" | "in-progress" | "complete";
 
@@ -31,10 +32,27 @@ export function Board() {
     users,
   } = useTask();
 
+  const { user } = useAuth();
+
   const [dragOverColumn, setDragOverColumn] = useState<Status | null>(null);
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<ITask | null>(null);
+  const [search, setSearch] = useState("");
+  const [filteredTasks, setFilteredTasks] = useState<ITask[]>(tasks);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setFilteredTasks(
+      tasks.filter((task) =>
+        task.title.toLowerCase().includes(e.target.value.toLowerCase())
+      )
+    );
+  };
+
+  useEffect(() => {
+    setFilteredTasks(tasks);
+  }, [tasks]);
 
   const onDragOver = (e: React.DragEvent, status: Status) => {
     e.preventDefault();
@@ -56,7 +74,9 @@ export function Board() {
       return;
     }
 
+    if (!user) return;
     // optimistic update
+    const previousTasks = [...tasks];
     const updatedTasks = tasks.map((task) =>
       task._id === draggedTaskId ? { ...task, status: targetStatus } : task
     );
@@ -75,6 +95,8 @@ export function Board() {
     );
     if (response.ok) {
       setRefetchTasks((prev) => !prev);
+    } else {
+      setTasks(previousTasks);
     }
 
     setDraggedTaskId(null);
@@ -93,6 +115,25 @@ export function Board() {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingTask(null);
+  };
+
+  const handleDeleteTask = async (id: string) => {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL}/tasks/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    if (response.ok) {
+      setRefetchTasks((prev) => !prev);
+    }
+
+    setEditingTask(null);
+    setIsModalOpen(false);
   };
 
   const handleTaskSubmit = async (taskData: {
@@ -173,14 +214,18 @@ export function Board() {
       <div className="flex-1 overflow-x-auto">
         <div className="p-6 space-y-6">
           <Board.Header />
-          <Board.Action onAddTask={handleAddTask} />
+          <Board.Action
+            onAddTask={handleAddTask}
+            onSearch={handleSearch}
+            search={search}
+          />
           <div className="flex gap-6 min-w-max">
             {(["pending", "in-progress", "complete"] as Status[]).map(
               (status) => (
                 <Board.Column
                   users={users}
                   key={status}
-                  tasks={tasks}
+                  tasks={filteredTasks.length > 0 ? filteredTasks : tasks}
                   status={status}
                   onDrop={onDrop}
                   onDragOver={onDragOver}
@@ -203,9 +248,11 @@ export function Board() {
         <TaskForm
           onSubmit={handleTaskSubmit}
           onCancel={handleCloseModal}
+          onDelete={handleDeleteTask}
           initialData={
             editingTask
               ? {
+                  _id: editingTask._id,
                   title: editingTask.title,
                   description: editingTask.description,
                   dueDate: editingTask.dueDate,
@@ -230,18 +277,29 @@ Board.Header = () => {
   );
 };
 
-Board.Action = ({ onAddTask }: { onAddTask: () => void }) => {
+Board.Action = ({
+  onAddTask,
+  onSearch,
+  search,
+}: {
+  onAddTask: () => void;
+  onSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  search: string;
+}) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { user } = useAuth();
   return (
     <div className="flex gap-2">
       <Input
         type="text"
-        value=""
-        onChange={() => {}}
+        value={search}
+        onChange={onSearch}
         placeholder="Search Task"
       />
       <button
+        disabled={!user}
         onClick={onAddTask}
-        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
+        className="disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-gray-400 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600"
       >
         Add Task
       </button>

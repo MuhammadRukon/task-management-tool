@@ -12,6 +12,8 @@ export interface AuthContextValue {
   register: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
+  error: string | null;
+  clearError: () => void;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -22,6 +24,7 @@ export const AuthContext = createContext<AuthContextValue | undefined>(
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -39,6 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
       setLoading(true);
+      clearError();
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/auth/login`,
@@ -55,6 +59,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("token", data.token);
         return true;
+      } else {
+        const data = await response.json();
+        setError(data.message);
       }
 
       return false;
@@ -73,6 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     try {
       setLoading(true);
+      clearError();
 
       const response = await fetch(
         `${import.meta.env.VITE_API_URL}/auth/register`,
@@ -89,6 +97,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem("user", JSON.stringify(data.user));
         localStorage.setItem("token", data.token);
         return true;
+      } else {
+        const data = await response.json();
+        setError(data.message);
       }
 
       return false;
@@ -106,12 +117,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem("token");
   };
 
+  function clearError() {
+    setError(null);
+  }
+
   const value = {
     user,
     login,
     register,
     logout,
     loading,
+    error,
+    clearError,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

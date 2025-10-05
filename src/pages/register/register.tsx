@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router";
 import { Input } from "../../components/input";
 import { Form } from "../../components/form";
@@ -13,7 +13,12 @@ export function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const { user, register } = useAuth();
+  const { user, register, error, clearError } = useAuth();
+
+  useEffect(() => {
+    clearError();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (user) return <Navigate to="/" />;
 
@@ -76,6 +81,7 @@ export function Register() {
             showPassword={showConfirmPassword}
             onShowPassword={() => setShowConfirmPassword((prev) => !prev)}
           />
+          {error && <p className="text-red-500">{error}</p>}
         </Form>
       </div>
     </div>
